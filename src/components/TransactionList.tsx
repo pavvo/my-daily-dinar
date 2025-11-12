@@ -2,9 +2,11 @@ import { Transaction, TransactionCard } from "./TransactionCard";
 
 interface TransactionListProps {
   transactions: Transaction[];
+  onEdit: (transaction: Transaction) => void;
+  onDelete: (id: string) => void;
 }
 
-export const TransactionList = ({ transactions }: TransactionListProps) => {
+export const TransactionList = ({ transactions, onEdit, onDelete }: TransactionListProps) => {
   if (transactions.length === 0) {
     return (
       <div className="text-center py-12">
@@ -19,7 +21,12 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
   return (
     <div className="space-y-3">
       {transactions.map((transaction) => (
-        <TransactionCard key={transaction.id} transaction={transaction} />
+        <TransactionCard 
+          key={transaction.id} 
+          transaction={transaction}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
       ))}
     </div>
   );

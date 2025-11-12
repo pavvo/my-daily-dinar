@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -6,7 +6,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,90 +20,91 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CalendarIcon, Plus } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Transaction, CATEGORIES, TransactionCategory } from "./TransactionCard";
 
-interface AddTransactionDialogProps {
-  onAddTransaction: (transaction: Omit<Transaction, "id">) => void;
+interface EditTransactionDialogProps {
+  transaction: Transaction | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onEditTransaction: (id: string, transaction: Omit<Transaction, "id">) => void;
 }
 
-export const AddTransactionDialog = ({ onAddTransaction }: AddTransactionDialogProps) => {
-  const [open, setOpen] = useState(false);
+export const EditTransactionDialog = ({
+  transaction,
+  open,
+  onOpenChange,
+  onEditTransaction,
+}: EditTransactionDialogProps) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState<"RSD" | "EUR">("RSD");
   const [date, setDate] = useState<Date>(new Date());
   const [type, setType] = useState<"income" | "expense">("expense");
   const [category, setCategory] = useState<TransactionCategory>("Other");
 
+  useEffect(() => {
+    if (transaction) {
+      setName(transaction.name);
+      setDescription(transaction.description || "");
+      setAmount(transaction.amount.toString());
+      setDate(transaction.date);
+      setType(transaction.type);
+      setCategory(transaction.category);
+    }
+  }, [transaction]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim() || !amount) return;
+    if (!transaction || !name.trim() || !amount) return;
 
-    const amountInRSD = currency === "EUR" 
-      ? parseFloat(amount) * 117 
-      : parseFloat(amount);
-
-    onAddTransaction({
+    onEditTransaction(transaction.id, {
       name: name.trim(),
       description: description.trim() || undefined,
-      amount: amountInRSD,
+      amount: parseFloat(amount),
       date,
       type,
       category,
     });
 
-    // Reset form
-    setName("");
-    setDescription("");
-    setAmount("");
-    setCurrency("RSD");
-    setDate(new Date());
-    setType("expense");
-    setCategory("Other");
-    setOpen(false);
+    onOpenChange(false);
   };
 
+  if (!transaction) return null;
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="lg" className="rounded-full shadow-lg">
-          <Plus className="h-5 w-5 mr-2" />
-          Add Transaction
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Add New Transaction</DialogTitle>
+          <DialogTitle>Edit Transaction</DialogTitle>
           <DialogDescription>
-            Enter the details of your transaction below.
+            Update the details of your transaction below.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label htmlFor="type">Type</Label>
+            <Label htmlFor="edit-type">Type</Label>
             <RadioGroup value={type} onValueChange={(value: "income" | "expense") => setType(value)}>
               <div className="flex gap-4">
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="expense" id="expense" />
-                  <Label htmlFor="expense" className="cursor-pointer">Expense</Label>
+                  <RadioGroupItem value="expense" id="edit-expense" />
+                  <Label htmlFor="edit-expense" className="cursor-pointer">Expense</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="income" id="income" />
-                  <Label htmlFor="income" className="cursor-pointer">Income</Label>
+                  <RadioGroupItem value="income" id="edit-income" />
+                  <Label htmlFor="edit-income" className="cursor-pointer">Income</Label>
                 </div>
               </div>
             </RadioGroup>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
+            <Label htmlFor="edit-name">Name *</Label>
             <Input
-              id="name"
+              id="edit-name"
               placeholder="e.g., Grocery shopping"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -113,39 +113,22 @@ export const AddTransactionDialog = ({ onAddTransaction }: AddTransactionDialogP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount *</Label>
-            <div className="flex gap-2">
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                required
-                className="flex-1"
-              />
-              <Select value={currency} onValueChange={(value: "RSD" | "EUR") => setCurrency(value)}>
-                <SelectTrigger className="w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="RSD">RSD</SelectItem>
-                  <SelectItem value="EUR">EUR</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {currency === "EUR" && amount && (
-              <p className="text-xs text-muted-foreground">
-                ≈ {(parseFloat(amount) * 117).toLocaleString()} RSD
-              </p>
-            )}
+            <Label htmlFor="edit-amount">Amount (RSD) *</Label>
+            <Input
+              id="edit-amount"
+              type="number"
+              step="0.01"
+              placeholder="0.00"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+            />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category">Category *</Label>
+            <Label htmlFor="edit-category">Category *</Label>
             <Select value={category} onValueChange={(value: TransactionCategory) => setCategory(value)}>
-              <SelectTrigger id="category">
+              <SelectTrigger id="edit-category">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -159,9 +142,9 @@ export const AddTransactionDialog = ({ onAddTransaction }: AddTransactionDialogP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="edit-description">Description</Label>
             <Textarea
-              id="description"
+              id="edit-description"
               placeholder="Optional details about this transaction"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -197,11 +180,11 @@ export const AddTransactionDialog = ({ onAddTransaction }: AddTransactionDialogP
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
               Cancel
             </Button>
             <Button type="submit" className="flex-1">
-              Add Transaction
+              Save Changes
             </Button>
           </div>
         </form>

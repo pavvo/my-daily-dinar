@@ -1,12 +1,28 @@
 import { useState } from "react";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
+import { EditTransactionDialog } from "@/components/EditTransactionDialog";
+import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
 import { TransactionList } from "@/components/TransactionList";
-import { Transaction } from "@/components/TransactionCard";
+import { CategoryBreakdown } from "@/components/CategoryBreakdown";
+import { Transaction, CATEGORIES, TransactionCategory } from "@/components/TransactionCard";
 import { Card } from "@/components/ui/card";
-import { Wallet } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Wallet, Filter } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Index = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<TransactionCategory | "All">("All");
 
   const handleAddTransaction = (transaction: Omit<Transaction, "id">) => {
     const newTransaction: Transaction = {
@@ -15,6 +31,24 @@ const Index = () => {
     };
     setTransactions((prev) => [newTransaction, ...prev]);
   };
+
+  const handleEditTransaction = (id: string, updatedTransaction: Omit<Transaction, "id">) => {
+    setTransactions((prev) =>
+      prev.map((t) => (t.id === id ? { ...updatedTransaction, id } : t))
+    );
+    setEditingTransaction(null);
+  };
+
+  const handleDeleteTransaction = () => {
+    if (deletingId) {
+      setTransactions((prev) => prev.filter((t) => t.id !== deletingId));
+      setDeletingId(null);
+    }
+  };
+
+  const filteredTransactions = categoryFilter === "All"
+    ? transactions
+    : transactions.filter((t) => t.category === categoryFilter);
 
   const balance = transactions.reduce((acc, transaction) => {
     return transaction.type === "income" 
@@ -69,11 +103,56 @@ const Index = () => {
           </Card>
         </div>
 
+        {/* Category Breakdown */}
+        <div className="mb-8">
+          <CategoryBreakdown transactions={transactions} />
+        </div>
+
         {/* Transactions */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-foreground mb-4">Recent Transactions</h2>
-          <TransactionList transactions={transactions} />
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-foreground">Recent Transactions</h2>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Filter className="h-4 w-4 mr-2" />
+                  {categoryFilter === "All" ? "All Categories" : categoryFilter}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Filter by Category</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={categoryFilter} onValueChange={(value) => setCategoryFilter(value as TransactionCategory | "All")}>
+                  <DropdownMenuRadioItem value="All">All Categories</DropdownMenuRadioItem>
+                  <DropdownMenuSeparator />
+                  {CATEGORIES.map((category) => (
+                    <DropdownMenuRadioItem key={category} value={category}>
+                      {category}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <TransactionList 
+            transactions={filteredTransactions}
+            onEdit={setEditingTransaction}
+            onDelete={setDeletingId}
+          />
         </div>
+
+        {/* Dialogs */}
+        <EditTransactionDialog
+          transaction={editingTransaction}
+          open={!!editingTransaction}
+          onOpenChange={(open) => !open && setEditingTransaction(null)}
+          onEditTransaction={handleEditTransaction}
+        />
+        <DeleteConfirmDialog
+          open={!!deletingId}
+          onOpenChange={(open) => !open && setDeletingId(null)}
+          onConfirm={handleDeleteTransaction}
+        />
       </div>
     </div>
   );
