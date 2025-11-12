@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
 import { EditTransactionDialog } from "@/components/EditTransactionDialog";
 import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
 import { TransactionList } from "@/components/TransactionList";
 import { CategoryBreakdown } from "@/components/CategoryBreakdown";
+import { BudgetDialog } from "@/components/BudgetDialog";
 import { Transaction, CATEGORIES, TransactionCategory } from "@/components/TransactionCard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,18 @@ const Index = () => {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<TransactionCategory | "All">("All");
+  const [budgets, setBudgets] = useState<Record<TransactionCategory, number>>(() => {
+    const saved = localStorage.getItem("budgets");
+    return saved ? JSON.parse(saved) : CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat]: 0 }), {} as Record<TransactionCategory, number>);
+  });
+
+  useEffect(() => {
+    localStorage.setItem("budgets", JSON.stringify(budgets));
+  }, [budgets]);
+
+  const handleSaveBudgets = (newBudgets: Record<TransactionCategory, number>) => {
+    setBudgets(newBudgets);
+  };
 
   const handleAddTransaction = (transaction: Omit<Transaction, "id">) => {
     const newTransaction: Transaction = {
@@ -105,7 +118,11 @@ const Index = () => {
 
         {/* Category Breakdown */}
         <div className="mb-8">
-          <CategoryBreakdown transactions={transactions} />
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-foreground">Budget Overview</h2>
+            <BudgetDialog budgets={budgets} onSaveBudgets={handleSaveBudgets} />
+          </div>
+          <CategoryBreakdown transactions={transactions} budgets={budgets} />
         </div>
 
         {/* Transactions */}
