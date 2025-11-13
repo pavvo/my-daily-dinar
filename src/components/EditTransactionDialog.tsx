@@ -22,11 +22,13 @@ import {
 } from "@/components/ui/select";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+import { sr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { Transaction, CATEGORIES, TransactionCategory } from "./TransactionCard";
+import { Transaction, TransactionCategory } from "./TransactionCard";
 
 interface EditTransactionDialogProps {
   transaction: Transaction | null;
+  categories: string[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onEditTransaction: (id: string, transaction: Omit<Transaction, "id">) => void;
@@ -34,6 +36,7 @@ interface EditTransactionDialogProps {
 
 export const EditTransactionDialog = ({
   transaction,
+  categories,
   open,
   onOpenChange,
   onEditTransaction,
@@ -43,7 +46,7 @@ export const EditTransactionDialog = ({
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState<Date>(new Date());
   const [type, setType] = useState<"income" | "expense">("expense");
-  const [category, setCategory] = useState<TransactionCategory>("Other");
+  const [category, setCategory] = useState<TransactionCategory>(categories[0] || "Ostalo");
 
   useEffect(() => {
     if (transaction) {
@@ -132,7 +135,7 @@ export const EditTransactionDialog = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {CATEGORIES.map((cat) => (
+                {categories.map((cat) => (
                   <SelectItem key={cat} value={cat}>
                     {cat}
                   </SelectItem>

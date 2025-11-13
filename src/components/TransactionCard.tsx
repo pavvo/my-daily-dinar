@@ -4,18 +4,18 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ArrowDownCircle, ArrowUpCircle, Pencil, Trash2 } from "lucide-react";
 
-export const CATEGORIES = [
-  "Food",
-  "Transport",
-  "Entertainment",
-  "Shopping",
-  "Bills",
-  "Healthcare",
-  "Education",
-  "Other",
-] as const;
+export const DEFAULT_CATEGORIES = [
+  "Hrana",
+  "Prevoz",
+  "Zabava",
+  "Kupovina",
+  "Računi",
+  "Zdravstvo",
+  "Obrazovanje",
+  "Ostalo",
+];
 
-export type TransactionCategory = typeof CATEGORIES[number];
+export type TransactionCategory = string;
 
 export interface Transaction {
   id: string;
@@ -58,7 +58,7 @@ export const TransactionCard = ({ transaction, onEdit, onDelete }: TransactionCa
               <p className="text-sm text-muted-foreground mt-1">{transaction.description}</p>
             )}
             <p className="text-xs text-muted-foreground mt-2">
-              {format(transaction.date, "MMM dd, yyyy")}
+              {format(transaction.date, "dd.MM.yyyy")}
             </p>
           </div>
         </div>

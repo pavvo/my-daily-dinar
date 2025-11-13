@@ -23,14 +23,16 @@ import {
 } from "@/components/ui/select";
 import { CalendarIcon, Plus } from "lucide-react";
 import { format } from "date-fns";
+import { sr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { Transaction, CATEGORIES, TransactionCategory } from "./TransactionCard";
+import { Transaction, TransactionCategory } from "./TransactionCard";
 
 interface AddTransactionDialogProps {
+  categories: string[];
   onAddTransaction: (transaction: Omit<Transaction, "id">) => void;
 }
 
-export const AddTransactionDialog = ({ onAddTransaction }: AddTransactionDialogProps) => {
+export const AddTransactionDialog = ({ categories, onAddTransaction }: AddTransactionDialogProps) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -38,7 +40,7 @@ export const AddTransactionDialog = ({ onAddTransaction }: AddTransactionDialogP
   const [currency, setCurrency] = useState<"RSD" | "EUR">("RSD");
   const [date, setDate] = useState<Date>(new Date());
   const [type, setType] = useState<"income" | "expense">("expense");
-  const [category, setCategory] = useState<TransactionCategory>("Other");
+  const [category, setCategory] = useState<TransactionCategory>(categories[0] || "Ostalo");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +67,7 @@ export const AddTransactionDialog = ({ onAddTransaction }: AddTransactionDialogP
     setCurrency("RSD");
     setDate(new Date());
     setType("expense");
-    setCategory("Other");
+    setCategory(categories[0] || "Ostalo");
     setOpen(false);
   };
 
@@ -74,59 +76,60 @@ export const AddTransactionDialog = ({ onAddTransaction }: AddTransactionDialogP
       <DialogTrigger asChild>
         <Button size="lg" className="rounded-full shadow-lg">
           <Plus className="h-5 w-5 mr-2" />
-          Add Transaction
+          Dodaj transakciju
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Add New Transaction</DialogTitle>
+          <DialogTitle>Dodaj novu transakciju</DialogTitle>
           <DialogDescription>
-            Enter the details of your transaction below.
+            Unesite detalje vaše transakcije.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label htmlFor="type">Type</Label>
+            <Label htmlFor="type">Tip</Label>
             <RadioGroup value={type} onValueChange={(value: "income" | "expense") => setType(value)}>
               <div className="flex gap-4">
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="expense" id="expense" />
-                  <Label htmlFor="expense" className="cursor-pointer">Expense</Label>
+                  <Label htmlFor="expense" className="cursor-pointer">Rashod</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="income" id="income" />
-                  <Label htmlFor="income" className="cursor-pointer">Income</Label>
+                  <Label htmlFor="income" className="cursor-pointer">Prihod</Label>
                 </div>
               </div>
             </RadioGroup>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
+            <Label htmlFor="name">Naziv *</Label>
             <Input
               id="name"
-              placeholder="e.g., Grocery shopping"
+              placeholder="npr. Kupovina namirnica"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="amount">Amount *</Label>
-            <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="amount">Iznos *</Label>
               <Input
                 id="amount"
                 type="number"
-                step="0.01"
-                placeholder="0.00"
+                placeholder="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
-                className="flex-1"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="currency">Valuta</Label>
               <Select value={currency} onValueChange={(value: "RSD" | "EUR") => setCurrency(value)}>
-                <SelectTrigger className="w-24">
+                <SelectTrigger id="currency">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -135,21 +138,22 @@ export const AddTransactionDialog = ({ onAddTransaction }: AddTransactionDialogP
                 </SelectContent>
               </Select>
             </div>
-            {currency === "EUR" && amount && (
-              <p className="text-xs text-muted-foreground">
-                ≈ {(parseFloat(amount) * 117).toLocaleString()} RSD
-              </p>
-            )}
           </div>
 
+          {currency === "EUR" && (
+            <p className="text-xs text-muted-foreground">
+              = {(parseFloat(amount || "0") * 117).toLocaleString()} RSD (kurs: 117 RSD = 1 EUR)
+            </p>
+          )}
+
           <div className="space-y-2">
-            <Label htmlFor="category">Category *</Label>
-            <Select value={category} onValueChange={(value: TransactionCategory) => setCategory(value)}>
+            <Label htmlFor="category">Kategorija</Label>
+            <Select value={category} onValueChange={setCategory}>
               <SelectTrigger id="category">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {CATEGORIES.map((cat) => (
+                {categories.map((cat) => (
                   <SelectItem key={cat} value={cat}>
                     {cat}
                   </SelectItem>
@@ -159,10 +163,10 @@ export const AddTransactionDialog = ({ onAddTransaction }: AddTransactionDialogP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Opis</Label>
             <Textarea
               id="description"
-              placeholder="Optional details about this transaction"
+              placeholder="Dodatne informacije..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
@@ -170,7 +174,7 @@ export const AddTransactionDialog = ({ onAddTransaction }: AddTransactionDialogP
           </div>
 
           <div className="space-y-2">
-            <Label>Date *</Label>
+            <Label>Datum</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -181,27 +185,27 @@ export const AddTransactionDialog = ({ onAddTransaction }: AddTransactionDialogP
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : <span>Pick a date</span>}
+                  {date ? format(date, "dd.MM.yyyy", { locale: sr }) : <span>Izaberi datum</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
                   selected={date}
-                  onSelect={(newDate) => newDate && setDate(newDate)}
+                  onSelect={(date) => date && setDate(date)}
                   initialFocus
-                  className="pointer-events-auto"
+                  locale={sr}
                 />
               </PopoverContent>
             </Popover>
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
-              Cancel
+              Otkaži
             </Button>
             <Button type="submit" className="flex-1">
-              Add Transaction
+              Dodaj transakciju
             </Button>
           </div>
         </form>

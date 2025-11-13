@@ -10,9 +10,9 @@ export const TransactionList = ({ transactions, onEdit, onDelete }: TransactionL
   if (transactions.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground text-lg">No transactions yet</p>
+        <p className="text-muted-foreground text-lg">Još nema transakcija</p>
         <p className="text-muted-foreground text-sm mt-2">
-          Add your first transaction to get started
+          Dodajte svoju prvu transakciju da počnete
         </p>
       </div>
     );

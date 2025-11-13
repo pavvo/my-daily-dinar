@@ -1,16 +1,17 @@
 import { Card } from "@/components/ui/card";
-import { Transaction, CATEGORIES, TransactionCategory } from "./TransactionCard";
+import { Transaction, TransactionCategory } from "./TransactionCard";
 import { AlertCircle } from "lucide-react";
 
 interface CategoryBreakdownProps {
+  categories: string[];
   transactions: Transaction[];
   budgets: Record<TransactionCategory, number>;
 }
 
-export const CategoryBreakdown = ({ transactions, budgets }: CategoryBreakdownProps) => {
+export const CategoryBreakdown = ({ categories, transactions, budgets }: CategoryBreakdownProps) => {
   const expenses = transactions.filter((t) => t.type === "expense");
   
-  const categoryTotals = CATEGORIES.map((category) => {
+  const categoryTotals = categories.map((category) => {
     const total = expenses
       .filter((t) => t.category === category)
       .reduce((acc, t) => acc + t.amount, 0);
@@ -25,15 +26,15 @@ export const CategoryBreakdown = ({ transactions, budgets }: CategoryBreakdownPr
   if (categoryTotals.length === 0) {
     return (
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Spending by Category</h3>
-        <p className="text-muted-foreground text-sm">No expenses yet</p>
+        <h3 className="text-lg font-semibold mb-4">Potrošnja po kategorijama</h3>
+        <p className="text-muted-foreground text-sm">Još nema rashoda</p>
       </Card>
     );
   }
 
   return (
     <Card className="p-6">
-      <h3 className="text-lg font-semibold mb-4">Spending by Category</h3>
+      <h3 className="text-lg font-semibold mb-4">Potrošnja po kategorijama</h3>
       <div className="space-y-4">
         {categoryTotals.map(({ category, total, budget, percentage, isOverBudget }) => {
           return (
@@ -55,25 +56,25 @@ export const CategoryBreakdown = ({ transactions, budgets }: CategoryBreakdownPr
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${
-                        isOverBudget ? "bg-destructive" : "bg-primary"
+                        isOverBudget ? "bg-destructive" : "bg-success"
                       }`}
                       style={{ width: `${Math.min(percentage, 100)}%` }}
                     />
                   </div>
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>{percentage.toFixed(1)}% used</span>
+                    <span>{percentage.toFixed(1)}% iskorišćeno</span>
                     {budget > total && (
-                      <span>{(budget - total).toLocaleString()} RSD remaining</span>
+                      <span>{(budget - total).toLocaleString()} RSD preostalo</span>
                     )}
                     {isOverBudget && (
                       <span className="text-destructive font-medium">
-                        {(total - budget).toLocaleString()} RSD over budget
+                        {(total - budget).toLocaleString()} RSD preko budžeta
                       </span>
                     )}
                   </div>
                 </>
               ) : (
-                <div className="text-xs text-muted-foreground">No budget set</div>
+                <div className="text-xs text-muted-foreground">Budžet nije postavljen</div>
               )}
             </div>
           );

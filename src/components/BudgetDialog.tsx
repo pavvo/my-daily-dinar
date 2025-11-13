@@ -12,15 +12,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Settings } from "lucide-react";
-import { CATEGORIES, TransactionCategory } from "./TransactionCard";
+import { TransactionCategory } from "./TransactionCard";
 import { useToast } from "@/hooks/use-toast";
 
 interface BudgetDialogProps {
+  categories: string[];
   budgets: Record<TransactionCategory, number>;
   onSaveBudgets: (budgets: Record<TransactionCategory, number>) => void;
 }
 
-export const BudgetDialog = ({ budgets, onSaveBudgets }: BudgetDialogProps) => {
+export const BudgetDialog = ({ categories, budgets, onSaveBudgets }: BudgetDialogProps) => {
   const [open, setOpen] = useState(false);
   const [tempBudgets, setTempBudgets] = useState<Record<TransactionCategory, number>>(budgets);
   const { toast } = useToast();
@@ -29,8 +30,8 @@ export const BudgetDialog = ({ budgets, onSaveBudgets }: BudgetDialogProps) => {
     onSaveBudgets(tempBudgets);
     setOpen(false);
     toast({
-      title: "Budgets saved",
-      description: "Your monthly budget limits have been updated.",
+      title: "Budžeti sačuvani",
+      description: "Vaša mesečna ograničenja budžeta su ažurirana.",
     });
   };
 
@@ -44,18 +45,18 @@ export const BudgetDialog = ({ budgets, onSaveBudgets }: BudgetDialogProps) => {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Settings className="h-4 w-4 mr-2" />
-          Set Budgets
+          Postavi budžete
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Set Monthly Budget Limits</DialogTitle>
+          <DialogTitle>Postavi mesečna ograničenja budžeta</DialogTitle>
           <DialogDescription>
-            Set spending limits for each category to track your budget.
+            Postavite limite potrošnje za svaku kategoriju.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          {CATEGORIES.map((category) => (
+          {categories.map((category) => (
             <div key={category} className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor={category} className="col-span-2 text-right">
                 {category}
@@ -75,9 +76,9 @@ export const BudgetDialog = ({ budgets, onSaveBudgets }: BudgetDialogProps) => {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
+            Otkaži
           </Button>
-          <Button onClick={handleSave}>Save Budgets</Button>
+          <Button onClick={handleSave}>Sačuvaj budžete</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

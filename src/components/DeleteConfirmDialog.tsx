@@ -24,15 +24,15 @@ export const DeleteConfirmDialog = ({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Transaction</AlertDialogTitle>
+          <AlertDialogTitle>Obriši transakciju</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete this transaction? This action cannot be undone.
+            Da li ste sigurni da želite da obrišete ovu transakciju? Ova radnja se ne može poništiti.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>Otkaži</AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-            Delete
+            Obriši
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
